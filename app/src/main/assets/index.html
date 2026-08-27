@@ -262,22 +262,9 @@ form.entry{display:grid; grid-template-columns:1fr 118px; gap:10px}
   function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 
-  function seedData(){
-    var rows=[
-      ["Housing / Rent","House rent",1300],["Transport","Car finance",257.63],
-      ["Phone / Internet","Phone (O2)",89.70],["Fuel","Fuel",150],["Groceries","Food",300],
-      ["Insurance","Car insurance",77.17],["Transport","DVLA road tax",17.06],
-      ["Personal","Football field sub",28],["Subscriptions","Claude",18],
-      ["Subscriptions","Microsoft",10.49],["Subscriptions","YouTube",12.99],
-      ["Subscriptions","Google One",8.98],["Subscriptions","Netflix",5.99]
-    ];
-    var out=[{id:uid(),kind:"income",owner:"joint",category:"Income",name:"Both salaries",amount:3600,freq:"monthly"}];
-    rows.forEach(function(r){ out.push({id:uid(),kind:"expense",owner:"joint",category:r[0],name:r[1],amount:r[2],freq:"monthly"}); });
-    return out;
-  }
   function load(){
     try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); if(d&&Array.isArray(d.entries)) return d;}}catch(e){}
-    return {entries:seedData(), budgets:{}, _seeded:true};
+    return {entries:[], budgets:{}};   // fresh start — empty by default
   }
   var state=load(); if(!state.budgets) state.budgets={};
   var ui={filter:"all", editId:null};
@@ -485,7 +472,6 @@ form.entry{display:grid; grid-template-columns:1fr 118px; gap:10px}
 
   function render(){ renderSummary(); renderIncome(); renderExpenses(); renderBudget(); }
   render();
-  if(state._seeded){ delete state._seeded; save(); }
 })();
 </script>
 </body>
