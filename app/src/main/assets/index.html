@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Household Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#eef1ec; --surface:#ffffff; --surface-2:#f6f7f3; --line:#dfe3da;
+  --ink:#1a231d; --muted:#5d6a60; --faint:#8b978c;
+  --accent:#1f7a5c; --accent-ink:#14503d; --accent-soft:#e2efe8;
+  --you:#2f6fb0; --you-soft:#e4edf7;
+  --wife:#b8557f; --wife-soft:#f6e6ee;
+  --joint:#bd8a2c; --joint-soft:#f5ecd6;
+  --good:#2e7d52; --bad:#c1483c;
+  --good-soft:#e3f0e7; --bad-soft:#f7e4e1;
+  --shadow:0 1px 2px rgba(20,40,30,.04), 0 6px 20px rgba(20,40,30,.06);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11150f; --surface:#1a1f18; --surface-2:#222922; --line:#333c31;
+    --ink:#e9ede4; --muted:#9caa9d; --faint:#748072;
+    --accent:#4fc196; --accent-ink:#bfe8d6; --accent-soft:#1f2e27;
+    --you:#6ea9e0; --you-soft:#1c2734;
+    --wife:#e08bb0; --wife-soft:#33222b;
+    --joint:#dcb556; --joint-soft:#302a19;
+    --good:#57b981; --bad:#e0776b;
+    --good-soft:#1d2b23; --bad-soft:#301f1c;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 26px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11150f; --surface:#1a1f18; --surface-2:#222922; --line:#333c31;
+  --ink:#e9ede4; --muted:#9caa9d; --faint:#748072;
+  --accent:#4fc196; --accent-ink:#bfe8d6; --accent-soft:#1f2e27;
+  --you:#6ea9e0; --you-soft:#1c2734;
+  --wife:#e08bb0; --wife-soft:#33222b;
+  --joint:#dcb556; --joint-soft:#302a19;
+  --good:#57b981; --bad:#e0776b;
+  --good-soft:#1d2b23; --bad-soft:#301f1c;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 26px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:"Hanken Grotesk",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased}
+.wrap{max-width:760px; margin:0 auto; padding:22px 18px 90px}
+.tnum{font-variant-numeric:tabular-nums}
+button{font-family:inherit; cursor:pointer}
+h1,h2,h3{margin:0}
+
+/* Header */
+.top{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:20px}
+.brand{display:flex; align-items:center; gap:12px}
+.mark{width:42px; height:42px; border-radius:12px; background:linear-gradient(150deg,var(--accent),var(--accent-ink)); display:grid; place-items:center; color:#fff; flex:none; box-shadow:var(--shadow)}
+.mark svg{width:23px;height:23px}
+.brand h1{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:23px; letter-spacing:-.01em}
+.brand p{margin:1px 0 0; color:var(--muted); font-size:12px}
+.tools{display:flex; gap:7px; flex-wrap:wrap; align-items:center}
+.btn{border:1px solid var(--line); background:var(--surface); color:var(--ink); padding:8px 12px; border-radius:10px; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; gap:6px; transition:.15s}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn svg{width:15px;height:15px}
+.btn.icon{padding:8px}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn.primary:hover{filter:brightness(1.07); color:#fff}
+.btn.sm{padding:6px 10px; font-size:12px}
+
+/* Summary */
+.summary{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:22px}
+.sc{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:15px 16px; box-shadow:var(--shadow); position:relative; overflow:hidden}
+.sc .rail{position:absolute; left:0; top:0; bottom:0; width:4px}
+.sc.in .rail{background:var(--good)} .sc.out .rail{background:var(--accent)} .sc.left .rail{background:var(--you)}
+.sc .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:700}
+.sc .val{font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:24px; margin-top:7px; letter-spacing:-.01em}
+.sc .sub{font-size:11.5px; color:var(--faint); margin-top:2px}
+.pos{color:var(--good)} .neg{color:var(--bad)}
+
+/* Cards */
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; margin-bottom:18px}
+.card>.hd{padding:15px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:12px}
+.card>.hd h2{font-family:"Fraunces",Georgia,serif; font-size:17px; font-weight:600; display:flex; align-items:center; gap:9px}
+.card>.hd .tot{font-weight:700; font-size:15px}
+.card>.bd{padding:6px 18px 16px}
+
+/* Add box */
+.addbox{background:var(--surface-2); border:1px dashed var(--line); border-radius:12px; padding:14px; margin:14px 0 6px}
+.addbox .ah{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:7px}
+form.entry{display:grid; grid-template-columns:1fr 118px; gap:10px}
+.field{display:flex; flex-direction:column; gap:5px}
+.field.full{grid-column:1/-1}
+.field.row2{grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.field label{font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.04em}
+.field input,.field select{font-family:inherit; font-size:15px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:10px 11px; width:100%}
+.field input:focus,.field select:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+.amtwrap{position:relative; display:flex; align-items:center}
+.amtwrap span{position:absolute; left:11px; color:var(--muted)}
+.amtwrap input{padding-left:23px}
+
+/* Filter chips */
+.filters{display:flex; gap:7px; flex-wrap:wrap; margin:14px 0 4px}
+.chip{border:1px solid var(--line); background:var(--surface); color:var(--muted); padding:6px 13px; border-radius:20px; font-size:12.5px; font-weight:600}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+
+/* Groups + rows */
+.group{margin-top:14px}
+.ghead{display:flex; align-items:center; justify-content:space-between; padding:7px 2px; border-bottom:2px solid var(--line)}
+.ghead .gn{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; display:flex; align-items:center; gap:7px}
+.ghead .gs{font-weight:700; font-size:14px}
+.dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+.row{display:flex; align-items:center; gap:11px; padding:11px 2px; border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .nm{flex:1; min-width:0}
+.row .nm b{display:block; font-weight:600; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.row .nm .meta{font-size:11.5px; color:var(--faint); margin-top:1px}
+.row .amt{font-weight:700; font-size:15px; white-space:nowrap; text-align:right}
+.row .amt small{display:block; font-weight:500; color:var(--faint); font-size:11px}
+.row .acts{display:flex; gap:3px}
+.row .acts button{border:0; background:transparent; color:var(--faint); padding:6px; border-radius:8px; line-height:0}
+.row .acts button svg{width:16px;height:16px}
+.row .acts .ed:hover{color:var(--accent); background:var(--accent-soft)}
+.row .acts .rm:hover{color:var(--bad); background:var(--bad-soft)}
+.empty{padding:26px 14px; text-align:center; color:var(--faint); font-size:13.5px}
+
+/* Budget */
+.budget-toggle{margin-top:2px}
+.catrow{padding:11px 2px; border-bottom:1px solid var(--line)}
+.catrow:last-child{border-bottom:0}
+.catrow .c1{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:7px}
+.catrow .cn{font-weight:600; font-size:14px}
+.catrow .cright{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted)}
+.catrow .cright input{width:82px; font-family:inherit; font-size:13.5px; text-align:right; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:6px 8px; color:var(--ink)}
+.bar{height:8px; border-radius:6px; background:var(--surface-2); overflow:hidden; position:relative}
+.bar i{position:absolute; left:0; top:0; bottom:0; border-radius:6px; background:var(--accent); transition:width .25s}
+.bar.over i{background:var(--bad)}
+.catnote{font-size:11.5px; margin-top:5px}
+
+.foot{margin-top:24px; text-align:center; color:var(--faint); font-size:12px; line-height:1.7}
+.foot b{color:var(--muted)}
+.saved{font-size:11.5px; color:var(--faint); display:inline-flex; align-items:center; gap:6px}
+.saved .dot{background:var(--good)}
+.hidden{display:none!important}
+
+@media (max-width:560px){
+  .summary{grid-template-columns:1fr; gap:10px}
+  .sc{display:flex; align-items:center; justify-content:space-between}
+  .sc .val{margin-top:0}
+  form.entry{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+      <div><h1>Household Ledger</h1><p>Monthly money in &amp; out · GBP</p></div>
+    </div>
+    <div class="tools">
+      <span class="saved" id="savednote"><span class="dot"></span> Saved</span>
+      <button class="btn sm" id="exportBtn" type="button" title="Back up your data">Export</button>
+      <button class="btn sm" id="importBtn" type="button" title="Load a backup">Import</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+      <button class="btn icon" id="themeBtn" type="button" title="Toggle light/dark" aria-label="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="btn icon" id="resetBtn" type="button" title="Clear everything" aria-label="Clear all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="sc in"><div class="rail"></div><div><div class="lbl">Income</div><div class="val tnum" id="sIncome">£0</div><div class="sub">per month</div></div></div>
+    <div class="sc out"><div class="rail"></div><div><div class="lbl">Expenses</div><div class="val tnum" id="sExpense">£0</div><div class="sub">per month</div></div></div>
+    <div class="sc left"><div class="rail"></div><div><div class="lbl">Left over</div><div class="val tnum" id="sLeft">£0</div><div class="sub" id="sLeftSub">income − expenses</div></div></div>
+  </div>
+
+  <!-- INCOME -->
+  <div class="card">
+    <div class="hd"><h2><span class="dot" style="background:var(--good)"></span>Income</h2><span class="tot tnum" id="incTot">£0</span></div>
+    <div class="bd">
+      <div id="incList"></div>
+      <div class="addbox">
+        <div class="ah"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add income</div>
+        <form class="entry" id="incForm" autocomplete="off">
+          <div class="field"><label for="iName">Description</label><input id="iName" required placeholder="e.g. My salary"></div>
+          <div class="field"><label for="iAmount">Amount</label><div class="amtwrap"><span>£</span><input id="iAmount" type="number" min="0" step="0.01" required placeholder="0.00"></div></div>
+          <div class="field row2">
+            <div class="field"><label for="iOwner">Whose</label><select id="iOwner"><option value="joint">Joint</option><option value="you">You</option><option value="wife">Wife</option></select></div>
+            <div class="field"><label for="iFreq">How often</label><select id="iFreq"><option value="monthly">Monthly</option><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option></select></div>
+          </div>
+          <div class="field full"><button class="btn primary" type="submit" style="justify-content:center; padding:11px">Add income</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPENSES -->
+  <div class="card">
+    <div class="hd"><h2><span class="dot" style="background:var(--accent)"></span>Expenses</h2><span class="tot tnum" id="expTot">£0</span></div>
+    <div class="bd">
+      <div class="addbox">
+        <div class="ah"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span id="expFormTitle">Add an expense</span></div>
+        <form class="entry" id="expForm" autocomplete="off">
+          <div class="field"><label for="eName">Description</label><input id="eName" required placeholder="e.g. Food, Rent, Netflix"></div>
+          <div class="field"><label for="eAmount">Amount</label><div class="amtwrap"><span>£</span><input id="eAmount" type="number" min="0" step="0.01" required placeholder="0.00"></div></div>
+          <div class="field row2">
+            <div class="field"><label for="eOwner">Whose</label><select id="eOwner"><option value="joint">Joint</option><option value="you">You</option><option value="wife">Wife</option></select></div>
+            <div class="field"><label for="eFreq">How often</label><select id="eFreq"><option value="monthly">Monthly</option><option value="weekly">Weekly</option><option value="fortnightly">Fortnightly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option></select></div>
+          </div>
+          <div class="field full"><label for="eCat">Category <span style="text-transform:none;font-weight:500;color:var(--faint)">(optional)</span></label><input id="eCat" list="catlist" placeholder="Housing, Food, Transport…">
+            <datalist id="catlist"><option>Housing / Rent</option><option>Transport</option><option>Fuel</option><option>Groceries</option><option>Insurance</option><option>Phone / Internet</option><option>Subscriptions</option><option>Utilities</option><option>Personal</option><option>Savings</option><option>Other</option></datalist>
+          </div>
+          <div class="field full" style="display:flex; flex-direction:row; gap:9px">
+            <button class="btn primary" type="submit" id="expSubmit" style="flex:1; justify-content:center; padding:11px">Add expense</button>
+            <button class="btn hidden" type="button" id="expCancel" style="padding:11px 16px">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="filters" id="filters">
+        <button class="chip" data-f="all" aria-pressed="true">All</button>
+        <button class="chip" data-f="joint" aria-pressed="false">Joint</button>
+        <button class="chip" data-f="you" aria-pressed="false">You</button>
+        <button class="chip" data-f="wife" aria-pressed="false">Wife</button>
+      </div>
+      <div id="expList"></div>
+    </div>
+  </div>
+
+  <!-- BUDGET (optional) -->
+  <div class="card">
+    <div class="hd">
+      <h2><span class="dot" style="background:var(--joint)"></span>Budget targets</h2>
+      <button class="btn sm budget-toggle" id="budgetToggle" type="button" aria-expanded="false">Show</button>
+    </div>
+    <div class="bd hidden" id="budgetBody">
+      <p style="color:var(--muted); font-size:13px; margin:8px 0 4px">Optional. Set what you <em>intend</em> to spend in each category, and see how your actual expenses compare.</p>
+      <div id="catList"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span id="balanceLine"></span><br>
+    Saved privately in this browser. Use <b>Export</b> to back up or move your data to another device.
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY="household-ledger-v2";
+  var fmt=new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP",maximumFractionDigits:0});
+  var fmt2=new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP",minimumFractionDigits:2,maximumFractionDigits:2});
+  var FREQ={monthly:1,weekly:52/12,fortnightly:26/12,quarterly:1/3,yearly:1/12};
+  var FREQLBL={monthly:"a month",weekly:"a week",fortnightly:"per fortnight",quarterly:"per quarter",yearly:"a year"};
+  var OWNER={you:"You",wife:"Wife",joint:"Joint"};
+  var OVAR={you:"var(--you)",wife:"var(--wife)",joint:"var(--joint)"};
+  function el(id){return document.getElementById(id);}
+  function monthly(e){return (Number(e.amount)||0)*(FREQ[e.freq]||1);}
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+  function seedData(){
+    var rows=[
+      ["Housing / Rent","House rent",1300],["Transport","Car finance",257.63],
+      ["Phone / Internet","Phone (O2)",89.70],["Fuel","Fuel",150],["Groceries","Food",300],
+      ["Insurance","Car insurance",77.17],["Transport","DVLA road tax",17.06],
+      ["Personal","Football field sub",28],["Subscriptions","Claude",18],
+      ["Subscriptions","Microsoft",10.49],["Subscriptions","YouTube",12.99],
+      ["Subscriptions","Google One",8.98],["Subscriptions","Netflix",5.99]
+    ];
+    var out=[{id:uid(),kind:"income",owner:"joint",category:"Income",name:"Both salaries",amount:3600,freq:"monthly"}];
+    rows.forEach(function(r){ out.push({id:uid(),kind:"expense",owner:"joint",category:r[0],name:r[1],amount:r[2],freq:"monthly"}); });
+    return out;
+  }
+  function load(){
+    try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); if(d&&Array.isArray(d.entries)) return d;}}catch(e){}
+    return {entries:seedData(), budgets:{}, _seeded:true};
+  }
+  var state=load(); if(!state.budgets) state.budgets={};
+  var ui={filter:"all", editId:null};
+  var savedTimer;
+  function save(){ try{localStorage.setItem(KEY,JSON.stringify({entries:state.entries,budgets:state.budgets})); var n=el("savednote"); if(n){n.style.opacity="1"; clearTimeout(savedTimer); savedTimer=setTimeout(function(){n.style.opacity=".5";},1100);} }catch(e){} }
+
+  // ---- income add ----
+  el("incForm").addEventListener("submit",function(ev){
+    ev.preventDefault();
+    var amt=parseFloat(el("iAmount").value);
+    if(!el("iName").value.trim()||isNaN(amt)||amt<0) return;
+    state.entries.push({id:uid(),kind:"income",owner:el("iOwner").value,category:"Income",name:el("iName").value.trim(),amount:amt,freq:el("iFreq").value});
+    save(); el("iName").value=""; el("iAmount").value=""; el("iName").focus(); render();
+  });
+
+  // ---- expense add / edit ----
+  el("expForm").addEventListener("submit",function(ev){
+    ev.preventDefault();
+    var amt=parseFloat(el("eAmount").value);
+    if(!el("eName").value.trim()||isNaN(amt)||amt<0) return;
+    var data={owner:el("eOwner").value,category:el("eCat").value.trim()||"Other",name:el("eName").value.trim(),amount:amt,freq:el("eFreq").value};
+    if(ui.editId){
+      var e=state.entries.filter(function(x){return x.id===ui.editId;})[0];
+      if(e){ e.owner=data.owner; e.category=data.category; e.name=data.name; e.amount=data.amount; e.freq=data.freq; }
+      exitEdit();
+    } else {
+      state.entries.push({id:uid(),kind:"expense",owner:data.owner,category:data.category,name:data.name,amount:data.amount,freq:data.freq});
+    }
+    save(); el("eName").value=""; el("eAmount").value=""; el("eCat").value=""; el("eName").focus(); render();
+  });
+  el("expCancel").addEventListener("click",exitEdit);
+  function exitEdit(){
+    ui.editId=null;
+    el("eName").value=""; el("eAmount").value=""; el("eCat").value="";
+    el("expFormTitle").textContent="Add an expense";
+    el("expSubmit").textContent="Add expense";
+    el("expCancel").classList.add("hidden");
+  }
+  function startEdit(id){
+    var e=state.entries.filter(function(x){return x.id===id;})[0]; if(!e) return;
+    ui.editId=id;
+    el("eName").value=e.name; el("eAmount").value=e.amount; el("eCat").value=(e.category==="Other"?"":e.category);
+    el("eOwner").value=e.owner; el("eFreq").value=e.freq;
+    el("expFormTitle").textContent="Edit expense";
+    el("expSubmit").textContent="Save changes";
+    el("expCancel").classList.remove("hidden");
+    el("eName").focus(); el("eName").scrollIntoView({behavior:"smooth",block:"center"});
+  }
+
+  // ---- list interactions ----
+  el("expList").addEventListener("click",function(ev){
+    var b=ev.target.closest("button"); if(!b) return;
+    var id=b.dataset.id;
+    if(b.classList.contains("rm")){ state.entries=state.entries.filter(function(e){return e.id!==id;}); if(ui.editId===id) exitEdit(); save(); render(); }
+    else if(b.classList.contains("ed")){ startEdit(id); }
+  });
+  el("incList").addEventListener("click",function(ev){
+    var b=ev.target.closest("button.rm"); if(!b) return;
+    state.entries=state.entries.filter(function(e){return e.id!==b.dataset.id;}); save(); render();
+  });
+  el("filters").addEventListener("click",function(ev){
+    var b=ev.target.closest(".chip"); if(!b) return;
+    ui.filter=b.dataset.f;
+    [].forEach.call(el("filters").children,function(x){x.setAttribute("aria-pressed",x===b?"true":"false");});
+    renderExpenses();
+  });
+
+  // ---- budget ----
+  el("budgetToggle").addEventListener("click",function(){
+    var body=el("budgetBody"); var open=body.classList.toggle("hidden");
+    this.textContent=open?"Show":"Hide"; this.setAttribute("aria-expanded",open?"false":"true");
+  });
+  el("catList").addEventListener("input",function(ev){
+    var inp=ev.target.closest("input[data-cat]"); if(!inp) return;
+    var v=parseFloat(inp.value);
+    if(isNaN(v)||v<0){ delete state.budgets[inp.dataset.cat]; } else { state.budgets[inp.dataset.cat]=v; }
+    save(); updateBudgetBars();
+  });
+
+  // ---- tools ----
+  function expName(){var d=new Date(); return "household-budget-"+d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+".json";}
+  function browserDownload(json,name){var blob=new Blob([json],{type:"application/json"}); var url=URL.createObjectURL(blob); var a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(url);},500);}
+  el("exportBtn").addEventListener("click",function(){
+    var json=JSON.stringify({entries:state.entries,budgets:state.budgets},null,2); var name=expName();
+    if(window.claude&&typeof window.claude.use==="function"){
+      Promise.resolve(window.claude.use("downloads")).then(function(dl){ if(dl){dl.save({filename:name,data:json}).catch(function(){});} else {browserDownload(json,name);} }).catch(function(){browserDownload(json,name);});
+    } else { browserDownload(json,name); }
+  });
+  el("importBtn").addEventListener("click",function(){el("importFile").click();});
+  el("importFile").addEventListener("change",function(ev){
+    var file=ev.target.files[0]; if(!file) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{ var d=JSON.parse(r.result);
+        if(d&&Array.isArray(d.entries)){
+          if(state.entries.length&&!confirm("Replace your current data with this backup?")){ev.target.value=""; return;}
+          state={entries:d.entries.map(function(e){return {id:e.id||uid(),kind:e.kind||(e.type==="income"?"income":"expense"),owner:e.owner||"joint",category:e.category||"Other",name:e.name||"Item",amount:Number(e.amount)||0,freq:e.freq||"monthly"};}), budgets:d.budgets||{}};
+          save(); render();
+        } else alert("That file doesn't look like a budget backup.");
+      }catch(e){alert("Could not read that file.");}
+      ev.target.value="";
+    };
+    r.readAsText(file);
+  });
+  el("resetBtn").addEventListener("click",function(){ if(confirm("Clear everything? Export first if you want a backup.")){state={entries:[],budgets:{}}; save(); render();} });
+
+  // ---- theme ----
+  var themeKey="household-ledger-theme", curTheme="system";
+  try{curTheme=localStorage.getItem(themeKey)||"system";}catch(e){}
+  function applyTheme(t){
+    if(t==="light"||t==="dark") document.documentElement.setAttribute("data-theme",t); else document.documentElement.removeAttribute("data-theme");
+    var dark=t==="dark"||(t!=="light"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);
+    el("themeIcon").innerHTML=dark?'<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>':'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  }
+  applyTheme(curTheme);
+  el("themeBtn").addEventListener("click",function(){var o=["system","light","dark"]; curTheme=o[(o.indexOf(curTheme)+1)%3]; try{localStorage.setItem(themeKey,curTheme);}catch(e){} applyTheme(curTheme);});
+  if(window.matchMedia){window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){if(curTheme==="system")applyTheme("system");});}
+
+  // ---- rendering ----
+  function totals(){var t={income:0,expense:0}; state.entries.forEach(function(e){t[e.kind]+=monthly(e);}); return t;}
+
+  function renderSummary(){
+    var t=totals(); var left=t.income-t.expense;
+    el("sIncome").textContent=fmt.format(t.income);
+    el("sExpense").textContent=fmt.format(t.expense);
+    var L=el("sLeft"); L.textContent=fmt.format(left); L.className="val tnum "+(left<0?"neg":"pos");
+    el("sLeftSub").textContent=left<0?"over budget":"income − expenses";
+    var bl=el("balanceLine");
+    if(t.income||t.expense){ bl.innerHTML=left<0?"You're spending <b>"+fmt.format(-left)+"</b> more than you earn each month.":"You keep <b>"+fmt.format(left)+"</b> a month after expenses."; }
+    else bl.textContent="";
+  }
+
+  function renderIncome(){
+    var inc=state.entries.filter(function(e){return e.kind==="income";});
+    var tot=inc.reduce(function(s,e){return s+monthly(e);},0);
+    el("incTot").textContent=fmt.format(tot);
+    var box=el("incList");
+    if(!inc.length){ box.innerHTML='<div class="empty">No income yet — add your salary below.</div>'; return; }
+    box.innerHTML=inc.map(function(e){
+      var m=monthly(e), sub=e.freq!=="monthly"?fmt2.format(e.amount)+" "+FREQLBL[e.freq]:"";
+      return '<div class="row"><div class="nm"><b>'+esc(e.name)+'</b><div class="meta">'+OWNER[e.owner]+(sub?" · "+sub:"")+'</div></div>'+
+        '<div class="amt tnum">'+fmt.format(m)+'<small>a month</small></div>'+
+        '<div class="acts"><button class="rm" data-id="'+e.id+'" title="Remove" aria-label="Remove '+esc(e.name)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></div>';
+    }).join("");
+  }
+
+  function renderExpenses(){
+    var exp=state.entries.filter(function(e){return e.kind==="expense";});
+    el("expTot").textContent=fmt.format(exp.reduce(function(s,e){return s+monthly(e);},0));
+    var box=el("expList");
+    var shown=exp.filter(function(e){return ui.filter==="all"||e.owner===ui.filter;});
+    if(!exp.length){ box.innerHTML='<div class="empty">No expenses yet. Add your first one using the box above.</div>'; return; }
+    if(!shown.length){ box.innerHTML='<div class="empty">No expenses for this filter.</div>'; return; }
+    var order=["joint","you","wife"], html="";
+    order.forEach(function(o){
+      if(ui.filter!=="all"&&ui.filter!==o) return;
+      var items=shown.filter(function(e){return e.owner===o;});
+      if(!items.length) return;
+      items.sort(function(a,b){return monthly(b)-monthly(a);});
+      var sub=items.reduce(function(s,e){return s+monthly(e);},0);
+      html+='<div class="group"><div class="ghead"><span class="gn"><span class="dot" style="background:'+OVAR[o]+'"></span>'+OWNER[o]+' &middot; '+items.length+' item'+(items.length>1?"s":"")+'</span><span class="gs tnum">'+fmt.format(sub)+'</span></div>';
+      html+=items.map(function(e){
+        var m=monthly(e), meta=esc(e.category); if(e.freq!=="monthly") meta+=" · "+fmt2.format(e.amount)+" "+FREQLBL[e.freq];
+        return '<div class="row"><div class="nm"><b>'+esc(e.name)+'</b><div class="meta">'+meta+'</div></div>'+
+          '<div class="amt tnum">'+fmt.format(m)+'<small>a month</small></div>'+
+          '<div class="acts"><button class="ed" data-id="'+e.id+'" title="Edit" aria-label="Edit '+esc(e.name)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>'+
+          '<button class="rm" data-id="'+e.id+'" title="Remove" aria-label="Remove '+esc(e.name)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></div></div>';
+      }).join("");
+      html+='</div>';
+    });
+    box.innerHTML=html;
+  }
+
+  function catSpend(){
+    var c={};
+    state.entries.forEach(function(e){ if(e.kind==="expense"){ c[e.category]=(c[e.category]||0)+monthly(e); } });
+    return c;
+  }
+  function renderBudget(){
+    var c=catSpend(); var keys=Object.keys(c).sort(function(a,b){return c[b]-c[a];});
+    var box=el("catList");
+    if(!keys.length){ box.innerHTML='<div class="empty">Add some expenses first, then set targets here.</div>'; return; }
+    box.innerHTML=keys.map(function(k){
+      var spent=c[k], tgt=state.budgets[k];
+      return '<div class="catrow"><div class="c1"><span class="cn">'+esc(k)+'</span>'+
+        '<span class="cright"><b class="tnum">'+fmt.format(spent)+'</b> of <input type="number" min="0" step="1" data-cat="'+esc(k)+'" value="'+(tgt!=null?tgt:"")+'" placeholder="target" aria-label="Budget target for '+esc(k)+'"></span></div>'+
+        '<div class="bar" data-barfor="'+esc(k)+'"><i></i></div><div class="catnote" data-notefor="'+esc(k)+'"></div></div>';
+    }).join("");
+    updateBudgetBars();
+  }
+  function updateBudgetBars(){
+    var c=catSpend();
+    Object.keys(c).forEach(function(k){
+      var bar=el("catList").querySelector('[data-barfor="'+cssEsc(k)+'"]');
+      var note=el("catList").querySelector('[data-notefor="'+cssEsc(k)+'"]');
+      if(!bar) return;
+      var tgt=state.budgets[k], spent=c[k];
+      if(tgt==null||tgt<=0){ bar.classList.remove("over"); bar.firstChild.style.width="0%"; if(note){note.textContent="no target set"; note.className="catnote";} return; }
+      var pct=Math.min(spent/tgt*100,100), over=spent>tgt;
+      bar.classList.toggle("over",over); bar.firstChild.style.width=pct+"%";
+      if(note){ var diff=tgt-spent; note.textContent=diff>=0?fmt2.format(diff)+" under target":fmt2.format(-diff)+" over target"; note.className="catnote "+(diff>=0?"pos":"neg"); }
+    });
+  }
+  function cssEsc(s){return String(s).replace(/["\\]/g,"\\$&");}
+
+  function render(){ renderSummary(); renderIncome(); renderExpenses(); renderBudget(); }
+  render();
+  if(state._seeded){ delete state._seeded; save(); }
+})();
+</script>
+</body>
+</html>
