@@ -1,6 +1,6 @@
 # Household Ledger
 
-**A simple, private budgeting app for couples — track your income, your
+**A simple, private budgeting app for Families — track your income, your
 partner's and shared expenses, and see exactly what's left each month.**
 
 Household Ledger is a straightforward monthly budget tracker built for two
