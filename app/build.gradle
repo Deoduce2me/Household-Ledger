@@ -10,12 +10,29 @@ android {
         applicationId "com.household.ledger"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
+    }
+
+    // Fixed signing key so every build is signed the same way and installs
+    // as a proper update (no need to uninstall the previous version).
+    // NOTE: this is a test key committed for convenience. For a real Play
+    // Store release, use a separate, secret key kept out of the repo.
+    signingConfigs {
+        app {
+            storeFile file('keystore.jks')
+            storePassword 'household'
+            keyAlias 'household'
+            keyPassword 'household'
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.app
+        }
         release {
+            signingConfig signingConfigs.app
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
